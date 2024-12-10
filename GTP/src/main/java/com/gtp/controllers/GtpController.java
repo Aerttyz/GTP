@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.gtp.dtos.TaskCreateDTO;
 import com.gtp.dtos.UserCreateDTO;
 import com.gtp.dtos.UserDto;
+import com.gtp.dtos.TaskDto;
 import com.gtp.models.TaskModel;
 import com.gtp.models.UserModel;
 import com.gtp.repositories.TaskRepository;
@@ -45,7 +46,8 @@ public class GtpController {
     @GetMapping("/users")
     public List<UserDto> getUsers() {
         List<UserModel> users = userRepository.findAll();
-        return users.stream().map(UserDto::new).collect(Collectors.toList());
+        List<UserDto> userDtos = users.stream().map(UserDto::new).collect(Collectors.toList());
+        return userDtos;
     }
 
     @GetMapping("/users/{id}")
@@ -97,8 +99,9 @@ public class GtpController {
     }
 
     @GetMapping("/tasks")
-    public List<TaskModel> getTasks() {
-        return taskRepository.findAll();
+    public List<TaskDto> getTasks() {
+        List<TaskModel> tasks = taskRepository.findAll();
+        return tasks.stream().map(TaskDto::new).collect(Collectors.toList());
     }
 
 }

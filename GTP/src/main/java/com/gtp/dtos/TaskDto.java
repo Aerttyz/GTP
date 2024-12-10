@@ -15,6 +15,7 @@ public class TaskDto {
         private LocalDateTime dataFim;
         private String status;
         private String prioridade;
+        private String nomeUsuario;
 
         public TaskDto() {
         }
@@ -27,6 +28,7 @@ public class TaskDto {
             this.dataFim = task.getDataFim();
             this.status = task.getStatus();
             this.prioridade = task.getPrioridade();
+            this.nomeUsuario = task.getIdUsuario().getNome();
         }
 
         public UUID getIdTarefa() {
@@ -83,5 +85,13 @@ public class TaskDto {
 
         public void setPrioridade(String prioridade) {
             this.prioridade = prioridade;
+        }
+
+        public String getIdUsuario() {
+            return nomeUsuario;
+        }
+
+        public void setIdUsuario(String nomeUsuario) {
+            this.nomeUsuario = nomeUsuario;
         }
 }
