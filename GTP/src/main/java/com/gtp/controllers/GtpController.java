@@ -53,12 +53,8 @@ public class GtpController {
     @GetMapping("/users/{id}")
     public ResponseEntity<UserDto> getUser(@PathVariable UUID id) {
         Optional<UserModel> user = userRepository.findById(id);
-        if (user.isPresent()) {
-            UserDto userDto = new UserDto();
-            BeanUtils.copyProperties(user.get(), userDto);
-            return new ResponseEntity<>(userDto, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return user.map(u -> ResponseEntity.ok(new UserDto(u)))
+            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 
     @PostMapping("/users")
