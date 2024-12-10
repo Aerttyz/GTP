@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "GtpApplication",
+            "request": "launch",
+            "mainClass": "com.gtp.GtpApplication",
+            "projectName": "GTP"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-GtpApplication<GTP>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.gtp.GTP.GtpApplication",
+            "projectName": "GTP",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
