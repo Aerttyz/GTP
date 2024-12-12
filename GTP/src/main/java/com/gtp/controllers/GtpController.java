@@ -122,4 +122,51 @@ public class GtpController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Tarefa não encontrada.");
         }
     }
+//usando o id do usuário 
+@PutMapping("/users/{id}")
+public ResponseEntity<?> updateUser(@PathVariable UUID id, @RequestBody UserCreateDTO userCreateDTO) {
+    Optional<UserModel> optionalUser = userRepository.findById(id);
+
+    if (optionalUser.isPresent()) {
+        UserModel userModel = optionalUser.get();
+        BeanUtils.copyProperties(userCreateDTO, userModel);
+        userRepository.save(userModel);
+        return ResponseEntity.ok(new UserDto(userModel));
+    } else {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+    }
+}
+//usando o id da tarefa
+/*exemplo de entrada para atualizar os dados:
+ * {
+  "titulo": "teste2",
+  "descricao": "azul2",
+  "dataInicio": "2023-08-30T09:00:00",
+  "dataFim": "2025-08-31T09:02:00",
+  "status": "npendente",
+  "prioridade": "nalta",
+  "idUsuario": "39ac346b-f7d5-4d87-a547-b08f2e7dc9be"//usando o id do usuário
+}
+ */
+@PutMapping("/tasks/{id}")
+public ResponseEntity<?> updateTask(@PathVariable UUID id, @RequestBody TaskCreateDTO taskCreateDTO) {
+    Optional<TaskModel> optionalTask = taskRepository.findById(id);
+
+    if (optionalTask.isPresent()) {
+        TaskModel taskModel = optionalTask.get();
+
+        Optional<UserModel> usuarioOptional = userRepository.findById(UUID.fromString(taskCreateDTO.getIdUsuario()));
+        if (!usuarioOptional.isPresent()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário associado não encontrado.");
+        }
+
+        taskModel.setIdUsuario(usuarioOptional.get());
+        BeanUtils.copyProperties(taskCreateDTO, taskModel, "id"); .
+        taskRepository.save(taskModel);
+
+        return ResponseEntity.ok(new TaskDto(taskModel));
+    } else {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Tarefa não encontrada.");
+    }
+}
 }
