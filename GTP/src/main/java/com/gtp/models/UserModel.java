@@ -33,7 +33,7 @@ public class UserModel implements Serializable {
     private String nome;
 
     
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.EAGER ,orphanRemoval = true)
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, fetch = FetchType.LAZY ,orphanRemoval = true)
     @JsonManagedReference
     private List<TaskModel> tarefas;
 

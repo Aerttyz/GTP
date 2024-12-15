@@ -1,6 +1,7 @@
 package com.gtp.controllers;
 
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.gtp.dtos.TaskCreateDTO;
 import com.gtp.dtos.UserCreateDTO;
@@ -10,6 +11,8 @@ import com.gtp.models.TaskModel;
 import com.gtp.models.UserModel;
 import com.gtp.repositories.TaskRepository;
 import com.gtp.repositories.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 import java.util.Optional;
 import java.util.ArrayList;
@@ -25,24 +28,21 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-
-
 
 @RestController
 public class GtpController {
-    
+
     @Autowired
     TaskRepository taskRepository;
     @Autowired
     UserRepository userRepository;
 
-    
-    
     @GetMapping("/hello")
     public String hello() {
         return "Hello World";
-      }
+    }
 
     @GetMapping("/users")
     public List<UserDto> getUsers() {
@@ -55,7 +55,7 @@ public class GtpController {
     public ResponseEntity<UserDto> getUser(@PathVariable UUID id) {
         Optional<UserModel> user = userRepository.findById(id);
         return user.map(u -> ResponseEntity.ok(new UserDto(u)))
-            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 
     @PostMapping("/users")
@@ -65,33 +65,33 @@ public class GtpController {
         userRepository.save(userModel);
         return new ResponseEntity<>(UserCreateDTO, HttpStatus.CREATED);
     }
-    
+
     @PostMapping("/tasks")
     public ResponseEntity<?> createTask(@RequestBody TaskCreateDTO TaskCreateDTO) {
         try {
-            Optional<UserModel> usuarioOptional = userRepository.findById(UUID.fromString(TaskCreateDTO.getIdUsuario()));
+            Optional<UserModel> usuarioOptional = userRepository
+                    .findById(UUID.fromString(TaskCreateDTO.getIdUsuario()));
             if (!usuarioOptional.isPresent()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário não encontrado.");
             }
-    
+
             TaskModel taskModel = new TaskModel();
             UserModel userModel = new UserModel();
-            
+
             BeanUtils.copyProperties(TaskCreateDTO, taskModel);
             List<TaskModel> tarefas = new ArrayList<>();
             tarefas.add(taskModel);
             userModel.setTarefa(tarefas);
-           
-            taskModel.setIdUsuario(usuarioOptional.get());
-    
-            
+
+            taskModel.setUsuario(usuarioOptional.get());
+
             TaskModel novaTask = taskRepository.save(taskModel);
-    
-        
+
             return ResponseEntity.status(HttpStatus.CREATED).body(novaTask);
-    
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao criar a tarefa: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro ao criar a tarefa: " + e.getMessage());
         }
     }
 
@@ -99,6 +99,43 @@ public class GtpController {
     public List<TaskDto> getTasks() {
         List<TaskModel> tasks = taskRepository.findAll();
         return tasks.stream().map(TaskDto::new).collect(Collectors.toList());
+    }
+
+    @PutMapping("/users/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable UUID id, @RequestBody UserCreateDTO userCreateDTO) {
+        Optional<UserModel> optionalUser = userRepository.findById(id);
+
+        if (optionalUser.isPresent()) {
+            UserModel userModel = optionalUser.get();
+            BeanUtils.copyProperties(userCreateDTO, userModel);
+            userRepository.save(userModel);
+            return ResponseEntity.ok(new UserDto(userModel));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+        }
+    }
+
+    @PutMapping("/tasks/{id}")
+    public ResponseEntity<?> updateTask(@PathVariable UUID id, @RequestBody TaskCreateDTO taskCreateDTO) {
+        Optional<TaskModel> optionalTask = taskRepository.findById(id);
+
+        if (optionalTask.isPresent()) {
+            TaskModel taskModel = optionalTask.get();
+
+            Optional<UserModel> usuarioOptional = userRepository
+                    .findById(UUID.fromString(taskCreateDTO.getIdUsuario()));
+            if (!usuarioOptional.isPresent()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário associado não encontrado.");
+            }
+
+            taskModel.setUsuario(usuarioOptional.get());
+            BeanUtils.copyProperties(taskCreateDTO, taskModel, "id");
+            taskRepository.save(taskModel);
+
+            return ResponseEntity.ok(new TaskDto(taskModel));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Tarefa não encontrada.");
+        }
     }
 
     @DeleteMapping("/users/{id}")
@@ -112,61 +149,29 @@ public class GtpController {
         }
     }
 
+    @Transactional
     @DeleteMapping("/tasks/{id}")
     public ResponseEntity<?> deleteTask(@PathVariable UUID id) {
-        Optional<TaskModel> task = taskRepository.findById(id);
-        if (task.isPresent()) {
-            taskRepository.deleteById(id);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        Optional<TaskModel> taskOptional = taskRepository.findById(id);
+        if (taskOptional.isPresent()) {
+            taskRepository.delete(taskOptional.get());
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // 204 No Content
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Tarefa não encontrada.");
         }
     }
-//usando o id do usuário 
-@PutMapping("/users/{id}")
-public ResponseEntity<?> updateUser(@PathVariable UUID id, @RequestBody UserCreateDTO userCreateDTO) {
-    Optional<UserModel> optionalUser = userRepository.findById(id);
-
-    if (optionalUser.isPresent()) {
-        UserModel userModel = optionalUser.get();
-        BeanUtils.copyProperties(userCreateDTO, userModel);
-        userRepository.save(userModel);
-        return ResponseEntity.ok(new UserDto(userModel));
-    } else {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
-    }
 }
-//usando o id da tarefa
-/*exemplo de entrada para atualizar os dados:
+
+// usando o id da tarefa
+/*
+ * exemplo de entrada para atualizar os dados:
  * {
-  "titulo": "teste2",
-  "descricao": "azul2",
-  "dataInicio": "2023-08-30T09:00:00",
-  "dataFim": "2025-08-31T09:02:00",
-  "status": "npendente",
-  "prioridade": "nalta",
-  "idUsuario": "39ac346b-f7d5-4d87-a547-b08f2e7dc9be"//usando o id do usuário
-}
+ * "titulo": "teste2",
+ * "descricao": "azul2",
+ * "dataInicio": "2023-08-30T09:00:00",
+ * "dataFim": "2025-08-31T09:02:00",
+ * "status": "npendente",
+ * "prioridade": "nalta",
+ * "idUsuario": "39ac346b-f7d5-4d87-a547-b08f2e7dc9be"//usando o id do usuário
+ * }
  */
-@PutMapping("/tasks/{id}")
-public ResponseEntity<?> updateTask(@PathVariable UUID id, @RequestBody TaskCreateDTO taskCreateDTO) {
-    Optional<TaskModel> optionalTask = taskRepository.findById(id);
-
-    if (optionalTask.isPresent()) {
-        TaskModel taskModel = optionalTask.get();
-
-        Optional<UserModel> usuarioOptional = userRepository.findById(UUID.fromString(taskCreateDTO.getIdUsuario()));
-        if (!usuarioOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Usuário associado não encontrado.");
-        }
-
-        taskModel.setIdUsuario(usuarioOptional.get());
-        BeanUtils.copyProperties(taskCreateDTO, taskModel, "id"); .
-        taskRepository.save(taskModel);
-
-        return ResponseEntity.ok(new TaskDto(taskModel));
-    } else {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Tarefa não encontrada.");
-    }
-}
-}

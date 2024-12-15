@@ -28,7 +28,7 @@ public class TaskDto {
             this.dataFim = task.getDataFim();
             this.status = task.getStatus();
             this.prioridade = task.getPrioridade();
-            this.nomeUsuario = task.getIdUsuario().getNome();
+            this.nomeUsuario = task.getUsuario().getNome();
         }
 
         public UUID getIdTarefa() {

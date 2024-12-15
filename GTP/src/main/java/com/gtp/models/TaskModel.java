@@ -3,6 +3,7 @@ package com.gtp.models;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
@@ -14,7 +15,6 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 
@@ -27,6 +27,7 @@ public class TaskModel implements Serializable{
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id_tarefa")
     private UUID idTarefa;
 
     private String titulo;
@@ -39,9 +40,8 @@ public class TaskModel implements Serializable{
     private String prioridade;
     
     @ManyToOne
-    @JoinColumn(name = "id_usuario", nullable = false)
+    @JoinColumn(name = "id_usuario", nullable = true)
     @JsonBackReference
-    @JsonIgnore
     private UserModel usuario;
 
     public TaskModel() {
@@ -57,10 +57,10 @@ public class TaskModel implements Serializable{
         this.prioridade = prioridade;
     }
 
-    public UserModel getIdUsuario() {
+    public UserModel getUsuario() {
         return usuario;
     }
-    public void setIdUsuario(UserModel usuario) {
+    public void setUsuario(UserModel usuario) {
         this.usuario = usuario;
     }
     public UUID getIdTarefa() {
