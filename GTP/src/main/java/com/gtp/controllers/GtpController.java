@@ -1,7 +1,6 @@
 package com.gtp.controllers;
 
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.gtp.dtos.TaskCreateDTO;
 import com.gtp.dtos.UserCreateDTO;

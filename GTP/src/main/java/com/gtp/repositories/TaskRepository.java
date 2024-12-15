@@ -11,5 +11,6 @@ import java.util.UUID;
 
 @Repository
 public interface TaskRepository extends JpaRepository<TaskModel, UUID> {
+    @SuppressWarnings("null")
     Optional<TaskModel> findById(UUID idTarefa);
 }
