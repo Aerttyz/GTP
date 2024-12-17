@@ -4,7 +4,7 @@ Este repositório contém uma API REST desenvolvida com Spring Framework para ge
 
 ## Tecnologias Utilizadas
 
-- **Java 17**
+- **Java 23**
 - **Spring Boot**
 - **Jakarta Persistence API (JPA)**
 - **Banco de dados relacional (MySQL)**
@@ -55,7 +55,7 @@ A API oferece os seguintes endpoints:
 
 ### Pré-requisitos
 
-- Java 17 ou superior
+- Java 23 ou superior
 - Maven instalado
 - Banco de dados configurado (MySQL)
 
@@ -63,7 +63,7 @@ A API oferece os seguintes endpoints:
 
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/seu-usuario/GTP.git
+   https://github.com/Aerttyz/GTP.git
    ```
 
 2. Navegue até o diretório do projeto
